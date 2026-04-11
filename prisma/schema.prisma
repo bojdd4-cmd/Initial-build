@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  password      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  stacks        Stack[]
+  boardPosts    BoardPost[]
+  comments      Comment[]
+  likes         Like[]
+}
+
+model Stack {
+  id            String         @id @default(cuid())
+  name          String
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  compounds     StackCompound[]
+  durationWeeks Int            @default(12)
+  goal          String?
+  notes         String?
+  isPublic      Boolean        @default(false)
+  overallScore  Float?
+  aiEvaluation  String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  boardPost     BoardPost?
+}
+
+model StackCompound {
+  id           String  @id @default(cuid())
+  stackId      String
+  stack        Stack   @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  compoundId   String
+  dosageMg     Int
+  frequency    String  @default("weekly")
+  isAncillary  Boolean @default(false)
+}
+
+model BoardPost {
+  id          String    @id @default(cuid())
+  title       String
+  body        String?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stackId     String    @unique
+  stack       Stack     @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  comments    Comment[]
+  likes       Like[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Comment {
+  id          String    @id @default(cuid())
+  body        String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId      String
+  post        BoardPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+}
+
+model Like {
+  id      String    @id @default(cuid())
+  userId  String
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId  String
+  post    BoardPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
