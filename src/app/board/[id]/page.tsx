@@ -30,12 +30,13 @@ function scoreClass(score: number | null): string {
 export default async function BoardPostPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
 
   const post = await prisma.boardPost.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       user: { select: { id: true, username: true } },
       stack: {

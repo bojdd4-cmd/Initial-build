@@ -54,8 +54,9 @@ function RatingBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-export default function CompoundDetailPage({ params }: { params: { id: string } }) {
-  const compound = getCompoundById(params.id);
+export default async function CompoundDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const compound = getCompoundById(id);
 
   if (!compound) notFound();
 

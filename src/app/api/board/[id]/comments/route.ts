@@ -5,12 +5,14 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { id } = await params;
 
   try {
     const body = await req.json();
@@ -20,7 +22,7 @@ export async function POST(
       return NextResponse.json({ error: "Comment body is required" }, { status: 400 });
     }
 
-    const post = await prisma.boardPost.findUnique({ where: { id: params.id } });
+    const post = await prisma.boardPost.findUnique({ where: { id } });
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
@@ -29,7 +31,7 @@ export async function POST(
       data: {
         body: commentBody.trim(),
         userId: session.user.id,
-        postId: params.id,
+        postId: id,
       },
       include: { user: { select: { username: true } } },
     });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -23,8 +23,9 @@ interface Stack {
 export default function PublishStackPage({
   params,
 }: {
-  params: { stackId: string };
+  params: Promise<{ stackId: string }>;
 }) {
+  const { stackId } = use(params);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -45,7 +46,7 @@ export default function PublishStackPage({
 
   useEffect(() => {
     if (status !== "authenticated") return;
-    fetch(`/api/stacks/${params.stackId}`)
+    fetch(`/api/stacks/${stackId}`)
       .then((res) => {
         if (!res.ok) throw new Error("Stack not found");
         return res.json();
@@ -56,7 +57,7 @@ export default function PublishStackPage({
       })
       .catch((err) => setStackError(err.message ?? "Failed to load stack"))
       .finally(() => setLoadingStack(false));
-  }, [params.stackId, status]);
+  }, [stackId, status]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -68,7 +69,7 @@ export default function PublishStackPage({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          stackId: params.stackId,
+          stackId: stackId,
           title: title.trim(),
           body: body.trim() || undefined,
         }),
