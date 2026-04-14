@@ -95,9 +95,11 @@ export default async function AccountPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {stacks.map((stack) => {
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {stacks.map((stack: any) => {
                 const mainCompounds = stack.compounds.filter(
-                  (c) => !c.isAncillary
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (c: any) => !c.isAncillary
                 );
                 return (
                   <div

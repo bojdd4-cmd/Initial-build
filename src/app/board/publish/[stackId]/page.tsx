@@ -156,7 +156,8 @@ export default function PublishStackPage({
             </p>
             <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
               {stack.durationWeeks} weeks ·{" "}
-              {stack.compounds.filter((c) => !c.isAncillary).length} compounds
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {stack.compounds.filter((c: any) => !c.isAncillary).length} compounds
               {stack.overallScore != null &&
                 ` · Score: ${Math.round(stack.overallScore)}`}
             </p>

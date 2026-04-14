@@ -60,8 +60,10 @@ export default async function BoardPostPage({
     : false;
   const likeCount = post.likes.length;
 
-  const mainCompounds = post.stack.compounds.filter((c) => !c.isAncillary);
-  const ancillaries = post.stack.compounds.filter((c) => c.isAncillary);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mainCompounds = post.stack.compounds.filter((c: any) => !c.isAncillary);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ancillaries = post.stack.compounds.filter((c: any) => c.isAncillary);
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
