@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { COMPOUNDS } from "@/data/compounds";
 
 function timeAgo(date: Date): string {
@@ -28,12 +27,11 @@ function resolveCompoundName(id: string): string {
   return match ? match.name : id;
 }
 
-export default async function BoardPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let posts: any[] = [];
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getPosts(): Promise<any[]> {
   try {
-    posts = await prisma.boardPost.findMany({
+    const { prisma } = await import("@/lib/prisma");
+    return await prisma.boardPost.findMany({
       include: {
         user: { select: { username: true } },
         stack: {
@@ -51,8 +49,13 @@ export default async function BoardPage() {
       orderBy: { createdAt: "desc" },
     });
   } catch (e) {
-    console.error("Board DB error:", e);
+    console.error("[BoardPage] DB error:", e);
+    return [];
   }
+}
+
+export default async function BoardPage() {
+  const posts = await getPosts();
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
@@ -82,17 +85,17 @@ export default async function BoardPage() {
         <div className="flex flex-col gap-4">
           {posts.map((post) => {
             const mainCompounds = post.stack.compounds.filter(
-              (c) => !c.isAncillary
+              (c: { isAncillary: boolean }) => !c.isAncillary
             );
             const compoundNames = mainCompounds
               .slice(0, 4)
-              .map((c) => resolveCompoundName(c.compoundId));
+              .map((c: { compoundId: string }) => resolveCompoundName(c.compoundId));
             const extra = mainCompounds.length - compoundNames.length;
 
             return (
               <Link key={post.id} href={`/board/${post.id}`} className="block">
                 <div
-                  className="card hover:border-[var(--accent)] transition-colors cursor-pointer"
+                  className="card hover:border-[var(--accent)] transition-colors cursor-pointer p-5"
                   style={{ borderColor: "var(--border)" }}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -140,7 +143,7 @@ export default async function BoardPage() {
                       </div>
 
                       <div className="flex flex-wrap gap-1">
-                        {compoundNames.map((name) => (
+                        {compoundNames.map((name: string) => (
                           <span key={name} className="badge badge-blue text-xs">
                             {name}
                           </span>
@@ -159,25 +162,13 @@ export default async function BoardPage() {
                     >
                       <div className="flex items-center gap-3 text-sm">
                         <span className="flex items-center gap-1">
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                          >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                           </svg>
                           {post._count.likes}
                         </span>
                         <span className="flex items-center gap-1">
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                           </svg>
                           {post._count.comments}
