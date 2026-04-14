@@ -33,7 +33,7 @@ export default function Home() {
       </div>
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-[92vh] flex items-center">
+      <section className="relative min-h-[92vh] flex items-start">
 
         {/* Background texture */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -46,7 +46,7 @@ export default function Home() {
           <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-red-900/10 rounded-full blur-[100px]" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 w-full py-20">
+        <div className="relative max-w-7xl mx-auto px-4 w-full pt-6 pb-16">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
 
             {/* ── LEFT: Copy ─────────────────────────────────────────────── */}

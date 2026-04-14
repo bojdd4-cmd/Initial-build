@@ -155,10 +155,10 @@ export default async function AccountPage() {
 
                     <div className="flex gap-2 mt-auto pt-1">
                       <Link
-                        href="/builder"
+                        href={`/stacks/${stack.id}`}
                         className="btn btn-secondary text-sm flex-1 text-center"
                       >
-                        Re-evaluate
+                        View
                       </Link>
                       <Link
                         href={`/board/publish/${stack.id}`}

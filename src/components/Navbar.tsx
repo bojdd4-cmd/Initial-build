@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 
@@ -13,8 +14,15 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#22c55e] flex items-center justify-center font-black text-black text-sm">
-            BC
+          <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0">
+            <Image
+              src="/images/logo-icon.jpg"
+              alt="BuildMyCycle logo"
+              width={36}
+              height={36}
+              className="w-full h-full object-cover"
+              style={{ mixBlendMode: "multiply" }}
+            />
           </div>
           <span className="font-bold text-white text-lg hidden sm:block">
             Build<span className="text-[#22c55e]">My</span>Cycle
