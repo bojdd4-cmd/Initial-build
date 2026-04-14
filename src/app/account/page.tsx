@@ -26,15 +26,16 @@ export default async function AccountPage() {
     redirect("/auth");
   }
 
-  let stacks: Awaited<ReturnType<typeof prisma.stack.findMany>> = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let stacks: any[] = [];
   try {
     stacks = await prisma.stack.findMany({
       where: { userId: session.user.id },
       include: { compounds: true },
       orderBy: { createdAt: "desc" },
     });
-  } catch {
-    // DB not ready
+  } catch (e) {
+    console.error("Account DB error:", e);
   }
 
   return (

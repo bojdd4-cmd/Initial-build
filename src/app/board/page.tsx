@@ -29,13 +29,8 @@ function resolveCompoundName(id: string): string {
 }
 
 export default async function BoardPage() {
-  let posts: Awaited<ReturnType<typeof prisma.boardPost.findMany<{
-    include: {
-      user: { select: { username: true } };
-      stack: { select: { name: true; durationWeeks: true; overallScore: true; compounds: { select: { compoundId: true; dosageMg: true; isAncillary: true } } } };
-      _count: { select: { comments: true; likes: true } };
-    };
-  }>>> = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let posts: any[] = [];
 
   try {
     posts = await prisma.boardPost.findMany({
@@ -55,8 +50,8 @@ export default async function BoardPage() {
       },
       orderBy: { createdAt: "desc" },
     });
-  } catch {
-    // DB not ready yet — show empty state
+  } catch (e) {
+    console.error("Board DB error:", e);
   }
 
   return (
