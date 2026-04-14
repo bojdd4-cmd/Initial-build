@@ -29,23 +29,35 @@ function resolveCompoundName(id: string): string {
 }
 
 export default async function BoardPage() {
-  const posts = await prisma.boardPost.findMany({
+  let posts: Awaited<ReturnType<typeof prisma.boardPost.findMany<{
     include: {
-      user: { select: { username: true } },
-      stack: {
-        select: {
-          name: true,
-          durationWeeks: true,
-          overallScore: true,
-          compounds: {
-            select: { compoundId: true, dosageMg: true, isAncillary: true },
+      user: { select: { username: true } };
+      stack: { select: { name: true; durationWeeks: true; overallScore: true; compounds: { select: { compoundId: true; dosageMg: true; isAncillary: true } } } };
+      _count: { select: { comments: true; likes: true } };
+    };
+  }>>> = [];
+
+  try {
+    posts = await prisma.boardPost.findMany({
+      include: {
+        user: { select: { username: true } },
+        stack: {
+          select: {
+            name: true,
+            durationWeeks: true,
+            overallScore: true,
+            compounds: {
+              select: { compoundId: true, dosageMg: true, isAncillary: true },
+            },
           },
         },
+        _count: { select: { comments: true, likes: true } },
       },
-      _count: { select: { comments: true, likes: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    // DB not ready yet — show empty state
+  }
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>

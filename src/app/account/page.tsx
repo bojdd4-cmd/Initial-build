@@ -26,11 +26,16 @@ export default async function AccountPage() {
     redirect("/auth");
   }
 
-  const stacks = await prisma.stack.findMany({
-    where: { userId: session.user.id },
-    include: { compounds: true },
-    orderBy: { createdAt: "desc" },
-  });
+  let stacks: Awaited<ReturnType<typeof prisma.stack.findMany>> = [];
+  try {
+    stacks = await prisma.stack.findMany({
+      where: { userId: session.user.id },
+      include: { compounds: true },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    // DB not ready
+  }
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
