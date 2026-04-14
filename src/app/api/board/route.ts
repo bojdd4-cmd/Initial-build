@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { stackId, title, body: postBody } = body;
+    const { stackId, title, body: postBody, imageUrl } = body;
 
     if (!stackId || typeof stackId !== "string") {
       return NextResponse.json({ error: "stackId is required" }, { status: 400 });
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
       data: {
         title: title.trim(),
         body: postBody?.trim() || null,
+        imageUrl: typeof imageUrl === "string" && imageUrl ? imageUrl : null,
         userId: session.user.id,
         stackId,
       },

@@ -53,6 +53,7 @@ model BoardPost {
   id          String    @id @default(cuid())
   title       String
   body        String?
+  imageUrl    String?
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   stackId     String    @unique

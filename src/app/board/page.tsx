@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { COMPOUNDS } from "@/data/compounds";
 
 function timeAgo(date: Date): string {
@@ -98,6 +99,18 @@ export default async function BoardPage() {
                   className="card hover:border-[var(--accent)] transition-colors cursor-pointer p-5"
                   style={{ borderColor: "var(--border)" }}
                 >
+                  {post.imageUrl && (
+                    <div className="mb-4 rounded-lg overflow-hidden" style={{ maxHeight: 220 }}>
+                      <Image
+                        src={post.imageUrl}
+                        alt={post.title}
+                        width={800}
+                        height={220}
+                        className="w-full object-cover"
+                        style={{ maxHeight: 220 }}
+                      />
+                    </div>
+                  )}
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <h2

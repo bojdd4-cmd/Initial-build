@@ -19,6 +19,8 @@ const PHOTOS = [
   { src: "/images/physique10.jpg",  alt: "Golden hour athlete" },
   { src: "/images/physique11.webp", alt: "Outdoor conditioning" },
   { src: "/images/physique12.jpg",  alt: "Kevin Levrone" },
+  { src: "/images/physique13.jpg",  alt: "Massive arms" },
+  { src: "/images/physique14.jpg",  alt: "Gym physique" },
 ];
 
 export default function Home() {
@@ -51,7 +53,7 @@ export default function Home() {
             <div>
               <div className="inline-flex items-center gap-2 mb-5 px-3 py-1.5 rounded-full border border-[#22c55e]/30 bg-[#22c55e]/5 text-[#22c55e] text-xs font-semibold tracking-widest uppercase">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
-                Powered by RoidAI · xAI Grok
+                Powered by RoidAI · AI-Graded Analysis
               </div>
 
               <h1 className="text-5xl sm:text-6xl xl:text-7xl font-black leading-[0.95] tracking-tighter mb-6">
@@ -151,12 +153,6 @@ export default function Home() {
                     sizes="260px"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f]/70 via-transparent to-transparent" />
-                  {/* Pro tag */}
-                  <div className="absolute top-3 left-3">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0a0a0f]/80 border border-yellow-500/30 backdrop-blur-sm">
-                      <span className="text-[10px] font-bold text-yellow-400 tracking-wider uppercase">IFBB Pro</span>
-                    </div>
-                  </div>
                 </div>
                 {/* Home gym aesthetic */}
                 <div className="relative flex-1 rounded-2xl overflow-hidden min-h-0 group">
@@ -168,13 +164,6 @@ export default function Home() {
                     sizes="260px"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f]/70 via-transparent to-transparent" />
-                  {/* RoidAI tag overlay */}
-                  <div className="absolute bottom-4 left-4">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0a0f]/80 border border-[#22c55e]/30 backdrop-blur-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
-                      <span className="text-[10px] font-bold text-[#22c55e] tracking-wider uppercase">RoidAI Evaluated</span>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -314,9 +303,15 @@ export default function Home() {
 
           <div className="relative p-8 md:p-14 flex flex-col md:flex-row items-center gap-8">
             <div className="flex-shrink-0">
-              <div className="w-20 h-20 rounded-2xl bg-[#22c55e]/10 border border-[#22c55e]/30 flex items-center justify-center text-4xl"
-                style={{ boxShadow: "0 0 40px rgba(34,197,94,0.15)" }}>
-                🤖
+              <div className="w-24 h-24 rounded-2xl overflow-hidden"
+                style={{ boxShadow: "0 0 40px rgba(34,197,94,0.2)" }}>
+                <Image
+                  src="/images/roidai-mascot.png"
+                  alt="RoidAI"
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
             <div className="flex-1 text-center md:text-left">
@@ -330,7 +325,7 @@ export default function Home() {
                 }}>RoidAI</span>
               </h2>
               <p className="text-[#9999bb] leading-relaxed max-w-2xl">
-                Powered by <span className="text-white font-semibold">xAI (Grok)</span> and trained on{" "}
+                Trained on{" "}
                 <span className="text-white font-semibold">{totalStudies}+ clinical studies</span>.
                 RoidAI reads your stack like a pharmacologist — it calculates compound interactions,
                 grades your overall risk A–F, flags cardiovascular and hepatic concerns,

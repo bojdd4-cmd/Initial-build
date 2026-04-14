@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { COMPOUNDS } from "@/data/compounds";
+import Image from "next/image";
 import CommentSection from "./CommentSection";
 import LikeButton from "./LikeButton";
 
@@ -79,6 +80,18 @@ export default async function BoardPostPage({
         </div>
 
         <div className="card mb-6">
+          {post.imageUrl && (
+            <div className="mb-4 -mx-5 -mt-5 rounded-t-lg overflow-hidden">
+              <Image
+                src={post.imageUrl}
+                alt={post.title}
+                width={900}
+                height={450}
+                className="w-full object-cover"
+                style={{ maxHeight: 450 }}
+              />
+            </div>
+          )}
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               <h1

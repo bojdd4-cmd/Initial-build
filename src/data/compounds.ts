@@ -2177,18 +2177,34 @@ export function getEffectRatingLabel(rating: number): string {
   return "Very High";
 }
 
+// Effect bars — higher is BETTER (green = high, red = low)
 export function getRatingColor(rating: number): string {
-  if (rating <= 2) return "text-green-400";
-  if (rating <= 4) return "text-yellow-400";
-  if (rating <= 6) return "text-orange-400";
+  if (rating >= 7) return "text-green-400";
+  if (rating >= 5) return "text-yellow-400";
+  if (rating >= 3) return "text-orange-400";
   return "text-red-400";
 }
 
 export function getRatingBg(rating: number): string {
+  if (rating >= 7) return "bg-green-500";
+  if (rating >= 5) return "bg-yellow-500";
+  if (rating >= 3) return "bg-orange-500";
+  return "bg-red-500";
+}
+
+// Side effect bars — higher is WORSE (red = high, green = low)
+export function getSideEffectRatingBg(rating: number): string {
   if (rating <= 2) return "bg-green-500";
   if (rating <= 4) return "bg-yellow-500";
   if (rating <= 6) return "bg-orange-500";
   return "bg-red-500";
+}
+
+export function getSideEffectRatingColor(rating: number): string {
+  if (rating <= 2) return "text-green-400";
+  if (rating <= 4) return "text-yellow-400";
+  if (rating <= 6) return "text-orange-400";
+  return "text-red-400";
 }
 
 export function getRatingHex(rating: number): string {

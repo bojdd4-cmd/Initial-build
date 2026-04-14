@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface StackCompound {
   id: string;
@@ -35,8 +36,13 @@ export default function PublishStackPage({
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -59,12 +65,56 @@ export default function PublishStackPage({
       .finally(() => setLoadingStack(false));
   }, [stackId, status]);
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please select an image file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("Image must be under 10MB.");
+      return;
+    }
+    setUploadError("");
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function removeImage() {
+    setImageFile(null);
+    setImagePreview(null);
+    setUploadError("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
     setSubmitting(true);
     setSubmitError("");
+
     try {
+      let imageUrl: string | undefined;
+
+      if (imageFile) {
+        setUploading(true);
+        const fd = new FormData();
+        fd.append("file", imageFile);
+        const upRes = await fetch("/api/upload", { method: "POST", body: fd });
+        setUploading(false);
+        if (!upRes.ok) {
+          const upData = await upRes.json();
+          setSubmitError(upData.error ?? "Image upload failed");
+          setSubmitting(false);
+          return;
+        }
+        const upData = await upRes.json();
+        imageUrl = upData.url;
+      }
+
       const res = await fetch("/api/board", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -72,6 +122,7 @@ export default function PublishStackPage({
           stackId: stackId,
           title: title.trim(),
           body: body.trim() || undefined,
+          imageUrl,
         }),
       });
       if (!res.ok) {
@@ -84,6 +135,7 @@ export default function PublishStackPage({
       setSubmitError("Something went wrong");
     } finally {
       setSubmitting(false);
+      setUploading(false);
     }
   }
 
@@ -113,6 +165,8 @@ export default function PublishStackPage({
       </div>
     );
   }
+
+  const isBusy = submitting || uploading;
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
@@ -183,11 +237,11 @@ export default function PublishStackPage({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              disabled={submitting}
+              disabled={isBusy}
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label
               className="block text-sm font-medium mb-1"
               style={{ color: "var(--text-primary)" }}
@@ -203,17 +257,76 @@ export default function PublishStackPage({
               placeholder="Share your goals, experience level, context about this cycle..."
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              disabled={submitting}
+              disabled={isBusy}
             />
+          </div>
+
+          {/* Image upload */}
+          <div className="mb-6">
+            <label
+              className="block text-sm font-medium mb-1"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Photo{" "}
+              <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                (optional · max 10MB)
+              </span>
+            </label>
+
+            {imagePreview ? (
+              <div className="relative rounded-lg overflow-hidden" style={{ maxHeight: 300 }}>
+                <Image
+                  src={imagePreview}
+                  alt="Preview"
+                  width={600}
+                  height={300}
+                  className="w-full object-cover rounded-lg"
+                  style={{ maxHeight: 300 }}
+                  unoptimized
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm transition-colors"
+                  disabled={isBusy}
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <label
+                className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed cursor-pointer transition-colors py-8 px-4"
+                style={{ borderColor: "var(--border)", color: "var(--text-secondary)" }}
+              >
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                <span className="text-sm">Click to upload a photo</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  disabled={isBusy}
+                />
+              </label>
+            )}
+
+            {uploadError && (
+              <p className="text-xs text-red-400 mt-1">{uploadError}</p>
+            )}
           </div>
 
           <div className="flex gap-3">
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={submitting || !title.trim()}
+              disabled={isBusy || !title.trim()}
             >
-              {submitting ? "Publishing..." : "Publish to Board"}
+              {uploading ? "Uploading image..." : submitting ? "Publishing..." : "Publish to Board"}
             </button>
             <a href="/account" className="btn btn-secondary">
               Cancel
