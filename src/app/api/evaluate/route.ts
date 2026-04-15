@@ -635,7 +635,7 @@ ${compoundDetails}${ancillaryDetails}
 Apply all your knowledge about the steroid family tree, myostatin, estrogen management, diminishing returns, and harm reduction principles. Be specific and educational.`;
 
     // Try models in order of preference — fall back if one isn't available
-    const models = ["grok-3", "grok-3-mini", "grok-beta"];
+    const models = ["grok-4.20-0309-reasoning", "grok-3"];
     let xaiRes: Response | null = null;
 
     for (const model of models) {
