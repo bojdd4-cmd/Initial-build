@@ -634,25 +634,36 @@ ${compoundDetails}${ancillaryDetails}
 
 Apply all your knowledge about the steroid family tree, myostatin, estrogen management, diminishing returns, and harm reduction principles. Be specific and educational.`;
 
-    const xaiRes = await fetch("https://api.x.ai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "grok-4",
-        messages: [
-          { role: "system", content: ROIDAI_SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.3,
-      }),
-    });
+    // Try models in order of preference — fall back if one isn't available
+    const models = ["grok-4.20-0309-reasoning", "grok-3", "grok-3-mini", "grok-beta"];
+    let xaiRes: Response | null = null;
 
-    if (!xaiRes.ok) {
-      const errText = await xaiRes.text();
-      console.error("xAI API error:", errText);
+    for (const model of models) {
+      const res = await fetch("https://api.x.ai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: ROIDAI_SYSTEM_PROMPT },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.3,
+        }),
+      });
+
+      if (res.ok) {
+        xaiRes = res;
+        break;
+      }
+      console.error(`xAI model ${model} failed (${res.status}), trying next...`);
+    }
+
+    if (!xaiRes) {
+      console.error("All xAI models failed, using mock evaluation");
       return NextResponse.json(mockEvaluation(body));
     }
 

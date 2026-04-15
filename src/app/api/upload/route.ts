@@ -3,9 +3,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { v2 as cloudinary } from "cloudinary";
 
-cloudinary.config({
-  cloudinary_url: process.env.CLOUDINARY_URL,
-});
+// Cloudinary SDK auto-reads CLOUDINARY_URL env var, but on Amplify
+// we need to parse it manually since it's echoed into .env.production
+const cloudUrl = process.env.CLOUDINARY_URL;
+if (cloudUrl) {
+  const match = cloudUrl.match(/cloudinary:\/\/(\d+):([^@]+)@(.+)/);
+  if (match) {
+    cloudinary.config({ api_key: match[1], api_secret: match[2], cloud_name: match[3] });
+  }
+}
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
