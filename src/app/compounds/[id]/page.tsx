@@ -9,6 +9,7 @@ import {
   getEffectRatingLabel,
 } from "@/data/compounds";
 import type { EffectRatings, SideEffectRatings } from "@/data/compounds";
+import NeedSourceButton from "@/components/NeedSourceButton";
 
 export function generateStaticParams() {
   return COMPOUNDS.map((c) => ({ id: c.id }));
@@ -151,6 +152,19 @@ export default async function CompoundDetailPage({ params }: { params: Promise<{
             </div>
           )}
         </div>
+      </div>
+
+      {/* Sourcing (Premium-gated) */}
+      <div className="card p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-[#22c55e]/20">
+        <div>
+          <h2 className="text-base font-semibold text-[var(--text-primary)] mb-1">
+            Sourcing
+          </h2>
+          <p className="text-sm text-[var(--text-secondary)]">
+            Get vetted source suggestions for {compound.name} in our Premium Discord.
+          </p>
+        </div>
+        <NeedSourceButton compoundName={compound.name} />
       </div>
 
       {/* Typical Dose Table */}

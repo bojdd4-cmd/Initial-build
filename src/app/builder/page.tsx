@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { COMPOUNDS } from "@/data/compounds";
 import type { Compound } from "@/data/compounds";
+import NeedSourceButton from "@/components/NeedSourceButton";
 
 interface StackEntry {
   compound: Compound;
@@ -61,6 +63,9 @@ export default function BuilderPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  // Premium toggle — default OFF. Only usable if the session user is premium.
+  const [usePremium, setUsePremium] = useState(false);
+  const isPremium = !!session?.user?.isPremium;
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -128,6 +133,7 @@ export default function BuilderPage() {
           })),
           durationWeeks,
           goal,
+          premium: isPremium && usePremium,
         }),
       });
       if (!res.ok) throw new Error("Evaluation failed. Please try again.");
@@ -446,18 +452,78 @@ export default function BuilderPage() {
                 </div>
               )}
 
+              {/* RoidAI model toggle */}
+              <div
+                className="mt-4 rounded-lg p-3 flex items-center justify-between gap-3"
+                style={{
+                  background: usePremium && isPremium ? "rgba(34,197,94,0.08)" : "var(--bg-secondary)",
+                  border: `1px solid ${usePremium && isPremium ? "rgba(34,197,94,0.35)" : "var(--border)"}`,
+                }}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
+                    RoidAI
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isPremium) return;
+                      setUsePremium((v) => !v);
+                    }}
+                    disabled={!isPremium}
+                    aria-pressed={usePremium && isPremium}
+                    aria-label="Toggle RoidAI Premium"
+                    className="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors"
+                    style={{
+                      background: usePremium && isPremium ? "#22c55e" : "#2a2a3d",
+                      cursor: isPremium ? "pointer" : "not-allowed",
+                      opacity: isPremium ? 1 : 0.6,
+                    }}
+                  >
+                    <span
+                      className="inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform"
+                      style={{
+                        transform: usePremium && isPremium ? "translateX(22px)" : "translateX(2px)",
+                        marginTop: 2,
+                      }}
+                    />
+                  </button>
+                  <span
+                    className="text-xs font-semibold"
+                    style={{
+                      color: usePremium && isPremium ? "#22c55e" : "var(--text-muted)",
+                    }}
+                  >
+                    Premium
+                  </span>
+                </div>
+                {!isPremium && (
+                  <Link
+                    href="/premium"
+                    className="text-xs font-bold text-[#22c55e] hover:underline whitespace-nowrap"
+                  >
+                    Unlock →
+                  </Link>
+                )}
+                {isPremium && (
+                  <span className="text-xs whitespace-nowrap" style={{ color: "var(--text-secondary)" }}>
+                    {usePremium ? "Grok 4.2 reasoning" : "Grok 3 (default)"}
+                  </span>
+                )}
+              </div>
+
               <button
                 onClick={handleEvaluate}
                 disabled={loading || stack.length === 0}
-                className="btn btn-primary w-full mt-4"
+                className="btn btn-primary w-full mt-3"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <span className="animate-spin inline-block w-4 h-4 rounded-full border-2 border-white border-t-transparent" />
-                    RoidAI is thinking...
+                    RoidAI{usePremium && isPremium ? " Premium" : ""} is thinking...
                   </span>
                 ) : (
-                  "Evaluate with RoidAI"
+                  `Evaluate with RoidAI${usePremium && isPremium ? " Premium" : ""}`
                 )}
               </button>
             </div>
@@ -602,7 +668,7 @@ export default function BuilderPage() {
                               border: "1px solid var(--border)",
                             }}
                           >
-                            <div className="flex items-center gap-2 mb-0.5">
+                            <div className="flex flex-wrap items-center gap-2 mb-0.5">
                               <span
                                 className="font-medium text-sm"
                                 style={{ color: "var(--text-primary)" }}
@@ -612,6 +678,7 @@ export default function BuilderPage() {
                               <span className="badge badge-blue text-xs">
                                 {anc.dose}
                               </span>
+                              <NeedSourceButton compoundName={anc.name} size="sm" />
                             </div>
                             <p
                               className="text-xs"

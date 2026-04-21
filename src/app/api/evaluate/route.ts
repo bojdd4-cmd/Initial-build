@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions, hasActivePremium } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { COMPOUNDS, ANCILLARIES } from "@/data/compounds";
 
 interface CompoundInput {
@@ -13,6 +16,12 @@ interface EvaluateBody {
   compounds: CompoundInput[];
   durationWeeks: number;
   goal?: string;
+  /**
+   * When true, the client is requesting the premium model tier (Grok 4.2 reasoning).
+   * The server will verify the user's premium subscription in a later phase; for now
+   * this flag just routes to the better model.
+   */
+  premium?: boolean;
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -634,8 +643,24 @@ ${compoundDetails}${ancillaryDetails}
 
 Apply all your knowledge about the steroid family tree, myostatin, estrogen management, diminishing returns, and harm reduction principles. Be specific and educational.`;
 
-    // Try models in order of preference — fall back if one isn't available
-    const models = ["grok-4.20-0309-reasoning", "grok-3"];
+    // Verify premium server-side — never trust the client flag alone.
+    // If the client requested premium AND the session user actually has an
+    // active subscription in the DB, we upgrade to Grok 4.2 reasoning.
+    let serverVerifiedPremium = false;
+    if (body.premium) {
+      const session = await getServerSession(authOptions);
+      if (session?.user?.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { premiumStatus: true, premiumUntil: true },
+        });
+        if (dbUser) serverVerifiedPremium = hasActivePremium(dbUser);
+      }
+    }
+
+    const models = serverVerifiedPremium
+      ? ["grok-4.20-0309-reasoning", "grok-3"]
+      : ["grok-3"];
     let xaiRes: Response | null = null;
 
     for (const model of models) {

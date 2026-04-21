@@ -16,10 +16,31 @@ model User {
   password      String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  // ── Premium / Stripe ────────────────────────────────────────────
+  stripeCustomerId      String?   @unique
+  stripeSubscriptionId  String?   @unique
+  /// "none" | "active" | "past_due" | "canceled"
+  premiumStatus         String    @default("none")
+  /// Access valid through this time (Stripe current_period_end). Null if never premium.
+  premiumUntil          DateTime?
+
+  // ── Discord link ────────────────────────────────────────────────
+  discordId             String?   @unique
+  discordUsername       String?
+  discordLinkedAt       DateTime?
+
   stacks        Stack[]
   boardPosts    BoardPost[]
   comments      Comment[]
   likes         Like[]
+}
+
+/// Idempotency ledger for Stripe webhook events.
+model StripeEvent {
+  id         String   @id
+  type       String
+  receivedAt DateTime @default(now())
 }
 
 model Stack {

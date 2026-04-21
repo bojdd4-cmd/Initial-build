@@ -14,14 +14,13 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0">
+          <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
             <Image
-              src="/images/logo-icon.jpg"
+              src="/images/logo-icon.webp"
               alt="BuildMyCycle logo"
               width={36}
               height={36}
-              className="w-full h-full object-cover"
-              style={{ mixBlendMode: "multiply" }}
+              className="w-full h-full object-contain"
             />
           </div>
           <span className="font-bold text-white text-lg hidden sm:block">
@@ -46,6 +45,15 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           {session ? (
             <>
+              {session.user.isPremium ? (
+                <Link href="/premium" className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border border-[#22c55e]/40 text-[#22c55e] bg-[#22c55e]/10">
+                  ★ Premium
+                </Link>
+              ) : (
+                <Link href="/premium" className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border border-[#2a2a3d] text-[var(--text-secondary)] hover:border-[#22c55e]/40 hover:text-[#22c55e] transition-colors">
+                  Upgrade
+                </Link>
+              )}
               <Link href="/account" className="text-[var(--text-secondary)] hover:text-white text-sm transition-colors">
                 {session.user.username || session.user.email}
               </Link>
@@ -58,6 +66,9 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              <Link href="/premium" className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border border-[#2a2a3d] text-[var(--text-secondary)] hover:border-[#22c55e]/40 hover:text-[#22c55e] transition-colors">
+                Upgrade
+              </Link>
               <Link href="/auth" className="btn btn-secondary text-xs px-3 py-1.5">
                 Sign In
               </Link>
@@ -91,11 +102,15 @@ export default function Navbar() {
           <Link href="/board" className="text-[var(--text-secondary)] text-sm" onClick={() => setMobileOpen(false)}>Roid Board</Link>
           {session ? (
             <>
+              <Link href="/premium" className="text-sm font-bold" style={{ color: session.user.isPremium ? "#22c55e" : "var(--text-secondary)" }} onClick={() => setMobileOpen(false)}>
+                {session.user.isPremium ? "★ Premium" : "Upgrade to Premium"}
+              </Link>
               <Link href="/account" className="text-[var(--text-secondary)] text-sm" onClick={() => setMobileOpen(false)}>My Account</Link>
               <button onClick={() => { signOut(); setMobileOpen(false); }} className="btn btn-secondary text-sm w-full">Sign Out</button>
             </>
           ) : (
             <>
+              <Link href="/premium" className="text-[var(--text-secondary)] text-sm" onClick={() => setMobileOpen(false)}>Upgrade to Premium</Link>
               <Link href="/auth" className="btn btn-secondary text-sm w-full text-center" onClick={() => setMobileOpen(false)}>Sign In</Link>
               <Link href="/auth?mode=register" className="btn btn-primary text-sm w-full text-center" onClick={() => setMobileOpen(false)}>Register</Link>
             </>
