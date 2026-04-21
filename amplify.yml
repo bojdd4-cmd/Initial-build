@@ -1,0 +1,37 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        # ── Write all runtime env vars into .env.production ──────────────────
+        # Amplify SSR lambdas don't always inherit console env vars at runtime,
+        # so we bake them into the build output here.
+        - echo "DATABASE_URL=$DATABASE_URL" >> .env.production
+        - echo "DIRECT_URL=$DIRECT_URL" >> .env.production
+        - echo "NEXTAUTH_SECRET=$NEXTAUTH_SECRET" >> .env.production
+        - echo "NEXTAUTH_URL=$NEXTAUTH_URL" >> .env.production
+        - echo "XAI_API_KEY=$XAI_API_KEY" >> .env.production
+        - echo "CLOUDINARY_URL=$CLOUDINARY_URL" >> .env.production
+        - echo "STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY" >> .env.production
+        - echo "STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET" >> .env.production
+        - echo "STRIPE_PAYMENT_LINK_URL=$STRIPE_PAYMENT_LINK_URL" >> .env.production
+        - echo "DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID" >> .env.production
+        - echo "DISCORD_CLIENT_SECRET=$DISCORD_CLIENT_SECRET" >> .env.production
+        - echo "DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN" >> .env.production
+        - echo "DISCORD_GUILD_ID=$DISCORD_GUILD_ID" >> .env.production
+        - echo "DISCORD_PREMIUM_ROLE_ID=$DISCORD_PREMIUM_ROLE_ID" >> .env.production
+        - echo "NEXT_PUBLIC_DISCORD_SOURCE_CHANNEL_URL=$NEXT_PUBLIC_DISCORD_SOURCE_CHANNEL_URL" >> .env.production
+        # ─────────────────────────────────────────────────────────────────────
+        - npx prisma generate
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*

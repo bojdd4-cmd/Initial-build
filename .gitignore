@@ -1,6 +1,7 @@
 .next/
 node_modules/
 .env
+.env.production
 *.db
 *.db-journal
 prisma/migrations/
