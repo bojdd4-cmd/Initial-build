@@ -1,33 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-/**
- * Post-checkout landing. Stripe takes a few seconds to fire the webhook, so
- * we poll the session until isPremium flips true, then prompt to link Discord.
- */
 export default function PremiumSuccessPage() {
   const { data: session, update, status } = useSession();
   const router = useRouter();
   const [checks, setChecks] = useState(0);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
+  /** Call the sync endpoint, then refresh the session token from DB. */
+  const syncAndRefresh = useCallback(async () => {
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const res = await fetch("/api/stripe/sync", { method: "POST" });
+      const data = await res.json();
+      if (data.premium) {
+        // Premium is now active in DB — refresh the JWT so session reflects it.
+        await update();
+      } else if (data.error) {
+        setSyncMessage(data.error);
+      } else if (data.message) {
+        setSyncMessage(data.message);
+      }
+    } catch {
+      setSyncMessage("Network error — check your connection and try again.");
+    } finally {
+      setSyncing(false);
+    }
+  }, [update]);
+
+  // Auto-sync every 3 seconds for the first 45 seconds.
   useEffect(() => {
     if (status !== "authenticated") return;
     if (session?.user?.isPremium) return;
-    if (checks > 20) return; // give up after ~40s
+    if (checks > 15) return; // 15 × 3s = 45s
 
     const t = setTimeout(async () => {
-      await update();
+      await syncAndRefresh();
       setChecks((c) => c + 1);
-    }, 2000);
+    }, 3000);
+
     return () => clearTimeout(t);
-  }, [session, status, update, checks]);
+  }, [session, status, syncAndRefresh, checks]);
 
   if (status === "loading") {
-    return <div className="max-w-xl mx-auto px-4 py-20 text-[#9999bb]">Loading…</div>;
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center text-[#9999bb]">
+        Loading…
+      </div>
+    );
   }
 
   if (status === "unauthenticated") {
@@ -53,44 +79,83 @@ export default function PremiumSuccessPage() {
           {discordLinked ? (
             <Link
               href="/builder"
-              className="inline-block bg-[#22c55e] hover:bg-[#16a34a] text-black font-black px-8 py-4 rounded-xl"
+              className="inline-block bg-[#22c55e] hover:bg-[#16a34a] text-black font-black px-8 py-4 rounded-xl transition-all"
             >
               START USING ROIDAI PREMIUM →
             </Link>
           ) : (
-            <Link
-              href="/premium/link-discord"
-              className="inline-block bg-[#5865F2] hover:bg-[#4752C4] text-white font-black px-8 py-4 rounded-xl"
-            >
-              LINK DISCORD →
-            </Link>
+            <div className="space-y-3">
+              <Link
+                href="/premium/link-discord"
+                className="block bg-[#5865F2] hover:bg-[#4752C4] text-white font-black px-8 py-4 rounded-xl transition-all"
+              >
+                LINK DISCORD → UNLOCK CHANNELS
+              </Link>
+              <Link
+                href="/builder"
+                className="block text-sm text-[#9999bb] hover:text-white transition-colors"
+              >
+                Skip for now, go to Stack Builder →
+              </Link>
+            </div>
           )}
         </>
-      ) : checks > 20 ? (
+      ) : checks > 15 ? (
+        /* Timed out — show manual sync button */
         <>
-          <h1 className="text-2xl font-black text-white mb-3">Still processing…</h1>
+          <div className="text-4xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-black text-white mb-3">
+            Taking longer than usual…
+          </h1>
           <p className="text-[#9999bb] mb-6">
-            Your payment is being confirmed. This usually takes under a minute. If
-            it&apos;s been longer, refresh this page or check your email for a Stripe
-            receipt.
+            Your payment went through on Stripe, but we haven&apos;t confirmed it
+            yet. Click the button below to sync manually.
           </p>
+          {syncMessage && (
+            <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-sm p-4 mb-4">
+              {syncMessage}
+            </div>
+          )}
           <button
             onClick={() => {
               setChecks(0);
-              void update();
+              void syncAndRefresh();
             }}
-            className="btn btn-secondary"
+            disabled={syncing}
+            className="btn btn-primary w-full mb-3"
           >
-            Check again
+            {syncing ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin inline-block w-4 h-4 rounded-full border-2 border-white border-t-transparent" />
+                Checking Stripe…
+              </span>
+            ) : (
+              "Sync Premium Status"
+            )}
           </button>
+          <p className="text-[#555577] text-xs">
+            If this keeps failing, make sure you paid using the same email as
+            your BuildMyCycle account, then contact support.
+          </p>
         </>
       ) : (
+        /* Still polling */
         <>
           <div className="text-4xl mb-4 animate-pulse">⏳</div>
-          <h1 className="text-2xl font-black text-white mb-3">Confirming payment…</h1>
-          <p className="text-[#9999bb]">
-            Hang tight — Stripe is notifying our server.
+          <h1 className="text-2xl font-black text-white mb-3">
+            Confirming payment…
+          </h1>
+          <p className="text-[#9999bb] mb-2">
+            Syncing with Stripe — this usually takes under 10 seconds.
           </p>
+          <p className="text-[#555577] text-sm">
+            Check {checks}/15
+          </p>
+          {syncMessage && (
+            <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-sm p-4 mt-4">
+              {syncMessage}
+            </div>
+          )}
         </>
       )}
     </div>
