@@ -212,15 +212,17 @@ export default function BuilderPage() {
               Duration (weeks)
             </label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               className="input w-full"
-              min={8}
-              max={24}
               value={durationWeeks}
-              onChange={(e) =>
-                setDurationWeeks(
-                  Math.min(24, Math.max(8, Number(e.target.value)))
-                )
+              onChange={(e) => {
+                const raw = e.target.value.replace(/\D/g, "");
+                if (raw !== "") setDurationWeeks(Number(raw));
+              }}
+              onBlur={() =>
+                setDurationWeeks((v) => Math.min(24, Math.max(8, v || 8)))
               }
             />
           </div>
@@ -400,14 +402,20 @@ export default function BuilderPage() {
                             Dosage (mg/week)
                           </label>
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             className="input w-full text-sm"
-                            min={1}
                             value={entry.dosageMg}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const raw = e.target.value.replace(/\D/g, "");
+                              if (raw !== "")
+                                updateDosage(entry.compound.id, Number(raw));
+                            }}
+                            onBlur={() =>
                               updateDosage(
                                 entry.compound.id,
-                                Number(e.target.value)
+                                Math.max(1, entry.dosageMg || 1)
                               )
                             }
                           />
